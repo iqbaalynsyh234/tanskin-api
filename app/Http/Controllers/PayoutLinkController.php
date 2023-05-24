@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Xendit\Xendit;
 use Illuminate\Http\Request;
 
-class TransactionController extends Controller
+class PayoutLinkController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -22,45 +23,35 @@ class TransactionController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function create(Request $request)
     {
-         // Validate the request data
-         $validatedData = $request->validate([
+        // Validate the request data
+        $validatedData = $request->validate([
+            'external_id' => 'required|string',
             'amount' => 'required|numeric',
+            'email' => 'required|email',
             'description' => 'required|string',
         ]);
 
-        // Create the transaction record in the database
-        $transaction = Transaction::create([
-            'amount' => $validatedData['amount'],
-            'description' => $validatedData['description'],
-        ]);
-
-        // Make the API call to Xendit to create a payment
+        // Make the API call to Xendit to create a payout link
         $xendit = new Xendit();
-        $response = $xendit->createPayment([
-            'external_id' => $transaction->id,
-            'amount' => $transaction->amount,
-            'description' => $transaction->description,
+        $response = $xendit->createPayoutLink([
+            'external_id' => $validatedData['external_id'],
+            'amount' => $validatedData['amount'],
+            'payer_email' => $validatedData['email'],
+            'description' => $validatedData['description'],
             // Add other required Xendit parameters
         ]);
 
-        // Handle the Xendit API response and update the transaction status
-        if ($response['status'] === 'CREATED') {
-            $transaction->update([
-                'xendit_id' => $response['id'],
-                'status' => 'created',
-            ]);
-
+        // Handle the Xendit API response
+        if ($response['status'] === 'ACTIVE') {
             return response()->json([
-                'message' => 'Transaction created successfully.',
-                'data' => $transaction,
+                'message' => 'Payout link created successfully.',
+                'data' => $response,
             ], 201);
         } else {
-            $transaction->update(['status' => 'failed']);
-
             return response()->json([
-                'message' => 'Failed to create transaction.',
+                'message' => 'Failed to create payout link.',
             ], 500);
         }
     }
@@ -96,6 +87,6 @@ class TransactionController extends Controller
      */
     public function destroy($id)
     {
-       //
+        //
     }
 }

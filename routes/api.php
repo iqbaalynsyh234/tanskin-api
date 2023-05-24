@@ -7,6 +7,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\XenditCallbackController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PayoutLinkController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\EwalletTransactionController;
 
@@ -29,12 +30,12 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LogoutController::class, 'logout']);
 
+// Payout Link//
+Route::post('/payout-links', [PayoutLinkController::class, 'create']);
+
 // ** Transaction ** //
-Route::get('/transactions', [TransactionController::class, 'index']);
-Route::get('/transactions/{id}', [TransactionController::class, 'show']);
 Route::post('/transactions', [TransactionController::class, 'store']);
-Route::put('/transactions/{id}', [TransactionController::class, 'update']);
-Route::delete('/transactions/{id}', [TransactionController::class, 'destroy']);
+Route::get('/transactions/{id}', [TransactionController::class, 'show']);
 
 /**payment */
 Route::get('payments', [PaymentController::class, 'index']);
@@ -57,10 +58,13 @@ Route::delete('payments/{id}', [PaymentController::class, 'destroy']);
 
 // Route Auth **//
 Route::group(['middleware' => 'auth:xendit'], function () {
+
+ // ** Invoice ** //
     Route::get('/invoices', [InvoiceController::class, 'index']);
     Route::get('/invoices/{id}', [InvoiceController::class, 'show']);
     Route::post('/invoices', [InvoiceController::class, 'store']);
     Route::put('/invoices/{id}', [InvoiceController::class, 'update']);
     Route::delete('/invoices/{id}', [InvoiceController::class, 'destroy']);
+   
 });
 
